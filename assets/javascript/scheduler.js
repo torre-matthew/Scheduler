@@ -13,7 +13,7 @@ let config = {
   let trainName = "";
   let destination = "";
   let frequency = "";
-  let nextArrival = "";
+  let firstTrainTime = "";
   let minsAway = "";
 
   $(".submit-form").on("click", function (event) {
@@ -21,23 +21,52 @@ let config = {
     trainName = $("#name-input").val().trim();
     destination = $("#destination-input").val().trim();
     frequency = $("#frequency-input").val().trim();
-    nextArrival = $("#time-input").val().trim();
-        console.log(trainName);
-        console.log(destination);
-        console.log(nextArrival);
-        console.log(frequency); 
+    firstTrainTime = $("#time-input").val().trim();
+    
+    
+    let momentFirstTrainTime = moment(firstTrainTime, "hh:mm A");
+    let minsBetweenFirstTimeAndNow = moment().diff(momentFirstTrainTime, "minutes");
+    let runs = Math.floor(minsBetweenFirstTimeAndNow/frequency);
+    let nextArrival = momentFirstTrainTime.add(runs*frequency, "m");
+    let minsAway = nextArrival.diff(moment(), "minutes");
+
+    if (minsAway < 0) {
+        nextArrival.add(frequency, "m");
+        console.log(nextArrival.format("hh:mm A"));
+        minsAway = nextArrival.diff(moment(), "minutes");
+        console.log(minsAway);
+
+    }
 
     dbRef.ref().push({
         train: trainName,
         destination: destination,
-        nextArrival: nextArrival,
+        firstTrainTime: firstTrainTime,
         frequency: frequency,
     });
+
+    // console.log("How time is displaying " + momentFirstTrainTime.format("hh:mm A"));
+
+    function nextArrivalDisplayLogic () {
+        
+        
+    }
 
     $("#name-input").val("");
     $("#destination-input").val("");
     $("#frequency-input").val("");
     $("#time-input").val("");
+
+  });
+
+  dbRef.ref().on("child_added", function (newEntrySnapshot) {
+    // console.log(newEntrySnapshot.val().train);
+    // console.log(newEntrySnapshot.val().destination);
+    // console.log(newEntrySnapshot.val().firstTrainTime);
+    // console.log(newEntrySnapshot.val().frequency);
+
+
+    $("tbody").append("<tr><td>" + newEntrySnapshot.val().train + "</td><td>" + newEntrySnapshot.val().destination + "</td><td>" + newEntrySnapshot.val().frequency + "</td><td>" + newEntrySnapshot.val().nextArrival + "</td></tr>");
 
   });
 
