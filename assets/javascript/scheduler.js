@@ -15,6 +15,7 @@ let config = {
   let frequency = "";
   let firstTrainTime = "";
   let minsAway = "";
+  let nextArrival = "";
 
   $(".submit-form").on("click", function (event) {
 
@@ -23,50 +24,74 @@ let config = {
     frequency = $("#frequency-input").val().trim();
     firstTrainTime = $("#time-input").val().trim();
     
-    
-    let momentFirstTrainTime = moment(firstTrainTime, "hh:mm A");
-    let minsBetweenFirstTimeAndNow = moment().diff(momentFirstTrainTime, "minutes");
-    let runs = Math.floor(minsBetweenFirstTimeAndNow/frequency);
-    let nextArrival = momentFirstTrainTime.add(runs*frequency, "m");
-    let minsAway = nextArrival.diff(moment(), "minutes");
-
-    if (minsAway < 0) {
-        nextArrival.add(frequency, "m");
-        console.log(nextArrival.format("hh:mm A"));
-        minsAway = nextArrival.diff(moment(), "minutes");
-        console.log(minsAway);
-
-    }
-
     dbRef.ref().push({
         train: trainName,
         destination: destination,
-        firstTrainTime: firstTrainTime,
         frequency: frequency,
+        firstTrainTime: firstTrainTime
     });
-
-    // console.log("How time is displaying " + momentFirstTrainTime.format("hh:mm A"));
-
-    function nextArrivalDisplayLogic () {
-        
-        
-    }
 
     $("#name-input").val("");
     $("#destination-input").val("");
     $("#frequency-input").val("");
     $("#time-input").val("");
 
+
+        console.log(trainName);
+        console.log(destination);
+        console.log(firstTrainTime);
+        console.log(frequency);
+        
+
   });
+
+  function timeCalc () {
+    
+    let momentFirstTrainTime = moment(firstTrainTime, "hh:mm A");
+    let minsBetweenFirstTimeAndNow = moment().diff(momentFirstTrainTime, "minutes");
+    let runs = Math.floor(minsBetweenFirstTimeAndNow/frequency);
+        nextArrival = momentFirstTrainTime.add(runs*frequency, "m");
+        minsAway = nextArrival.diff(moment(), "minutes");
+
+    if (minsAway < 0) {
+        nextArrival = nextArrival.add(frequency, "m");
+        console.log("Next Arrival Time " + nextArrival.format("hh:mm A"));
+        console.log("Next Arrival Time " + nextArrival);
+        minsAway = nextArrival.diff(moment(), "minutes");
+        console.log("Minutes Away " + minsAway);
+    } 
+    
+    if (minsAway === 0) {
+        minsAway = "Ariving Now";
+    }
+  }
 
   dbRef.ref().on("child_added", function (newEntrySnapshot) {
     // console.log(newEntrySnapshot.val().train);
     // console.log(newEntrySnapshot.val().destination);
-    // console.log(newEntrySnapshot.val().firstTrainTime);
+    console.log(newEntrySnapshot.val().firstTrainTime);
     // console.log(newEntrySnapshot.val().frequency);
 
+    firstTrainTime = newEntrySnapshot.val().firstTrainTime; 
+    frequency = newEntrySnapshot.val().frequency;
 
-    $("tbody").append("<tr><td>" + newEntrySnapshot.val().train + "</td><td>" + newEntrySnapshot.val().destination + "</td><td>" + newEntrySnapshot.val().frequency + "</td><td>" + newEntrySnapshot.val().nextArrival + "</td></tr>");
+    timeCalc ();
+
+    nextArrival = nextArrival.format("hh:mm A");
+
+
+    $("tbody").append("<tr><td>" + 
+        newEntrySnapshot.val().train + 
+        "</td><td>" + 
+        newEntrySnapshot.val().destination + 
+        "</td><td>" + 
+        newEntrySnapshot.val().frequency + 
+        "</td><td>" + 
+        nextArrival + 
+        "</td><td>" +  
+        minsAway + 
+        "</td></tr>"        
+    );
 
   });
 
