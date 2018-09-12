@@ -76,6 +76,7 @@ let config = {
     frequency = newEntrySnapshot.val().frequency;
 
     timeCalc ();
+    
 
     nextArrival = nextArrival.format("hh:mm A");
 
